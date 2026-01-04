@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Lock, Mail, Eye, EyeOff } from 'lucide-react';
 
@@ -26,7 +26,7 @@ const AdminLoginPage = () => {
     setIsLoading(true);
     setError('');
 
-    // Check credentials
+    // Check credentials - USE YOUR CREDENTIALS
     const isAuthenticated = 
       formData.email === 'abrham.yimer28@gmail.com' && 
       formData.password === 'Abrham@1234#';
@@ -35,7 +35,13 @@ const AdminLoginPage = () => {
       if (isAuthenticated) {
         // Store authentication state
         localStorage.setItem('adminAuthenticated', 'true');
-        // Redirect to admin dashboard - FIXED: changed to '/admin-dashboard'
+        localStorage.setItem('adminUser', JSON.stringify({
+          id: 1,
+          name: 'Admin',
+          email: formData.email
+        }));
+        
+        // Redirect to admin dashboard
         navigate('/admin-dashboard');
       } else {
         setError('Invalid email or password');
@@ -47,9 +53,7 @@ const AdminLoginPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-4">
       <div className="max-w-sm w-full">
-        {/* Login Card - Reduced height */}
         <div className="bg-white rounded-xl shadow-xl">
-          {/* Header Section - Compact */}
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 bg-white/10 backdrop-blur-sm rounded-xl mb-4 border border-white/20">
               <Shield size={24} className="text-white" />
@@ -58,17 +62,14 @@ const AdminLoginPage = () => {
             <p className="text-blue-100 text-sm">Sign in to manage your website</p>
           </div>
 
-          {/* Form Section - Compact */}
           <div className="p-6">
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Error Message */}
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg p-3">
                   {error}
                 </div>
               )}
 
-              {/* Email Field */}
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   Email
@@ -81,13 +82,12 @@ const AdminLoginPage = () => {
                     value={formData.email}
                     onChange={handleChange}
                     className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    placeholder="admin@example.com"
+                    placeholder="abrham.yimer28@gmail.com"
                     required
                   />
                 </div>
               </div>
 
-              {/* Password Field */}
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   Password
@@ -100,7 +100,7 @@ const AdminLoginPage = () => {
                     value={formData.password}
                     onChange={handleChange}
                     className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    placeholder="••••••••"
+                    placeholder="Enter your password"
                     required
                   />
                   <button
@@ -113,7 +113,6 @@ const AdminLoginPage = () => {
                 </div>
               </div>
 
-              {/* Sign In Button */}
               <button
                 type="submit"
                 disabled={isLoading}
@@ -135,19 +134,18 @@ const AdminLoginPage = () => {
               </button>
             </form>
 
-            {/* Security Notice - Compact */}
             <div className="mt-6 p-3 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-lg">
               <div className="flex items-center space-x-2">
                 <Shield size={14} className="text-blue-600 flex-shrink-0" />
                 <p className="text-xs text-gray-600">
-                  <span className="font-medium text-gray-900">Protected area.</span> Authorized access only.
+                  <span className="font-medium text-gray-900">Admin Access Only</span> Authorized personnel only.
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Footer - Compact */}
+        {/* Footer */}
         <div className="mt-6 text-center">
           <p className="text-gray-400 text-xs">
             © {new Date().getFullYear()} Fitness Pro Admin

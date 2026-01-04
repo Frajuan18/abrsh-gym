@@ -1,13 +1,24 @@
 import React, { useState } from 'react';
-import { CheckCircle, Star, Calendar, ArrowRight, Sparkles, Target, Users, Zap, Shield, Award, DollarSign, ThumbsUp, ShoppingBag, HelpCircle, PlusCircle, Utensils, Calculator, ChefHat, RotateCcw, CreditCard, FileText, MessageSquare, Package } from 'lucide-react';
+import { 
+  CheckCircle, Star, Calendar, ArrowRight, Sparkles, Target, 
+  Users, Zap, Shield, Award, DollarSign, ThumbsUp, ShoppingBag, 
+  HelpCircle, PlusCircle, Utensils, Calculator, ChefHat, RotateCcw, 
+  CreditCard, FileText, MessageSquare, Package, Loader2, AlertCircle
+} from 'lucide-react';
+import { usersService } from '../services/databaseService';
+import { isValidEmail } from '../constants/databaseConstants';
 
 const RegisterPage = () => {
   const [billingCycle, setBillingCycle] = useState('monthly');
   const [selectedPlan, setSelectedPlan] = useState('Pro');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
   const pricingPlans = [
     {
       name: 'Starter',
+      value: 'Starter',
       description: 'Perfect for beginners getting started',
       monthlyPrice: 199,
       yearlyPrice: 179,
@@ -23,6 +34,7 @@ const RegisterPage = () => {
     },
     {
       name: 'Pro',
+      value: 'Pro',
       description: 'Most popular for serious results',
       monthlyPrice: 349,
       yearlyPrice: 299,
@@ -39,6 +51,7 @@ const RegisterPage = () => {
     },
     {
       name: 'Elite',
+      value: 'Elite',
       description: 'Maximum support and accountability',
       monthlyPrice: 599,
       yearlyPrice: 499,
@@ -115,11 +128,13 @@ const RegisterPage = () => {
   ];
 
   const [formData, setFormData] = useState({
-    fullName: '',
+    full_name: '',
     email: '',
-    phone: '',
+    phone_no: '',
     password: '',
-    fitnessGoals: '',
+    fitness_goals: '',
+    plan: 2,
+    status: 1,
     agreeToTerms: false
   });
 
@@ -129,14 +144,151 @@ const RegisterPage = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+    
+    if (error) setError('');
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Handle registration logic here
-    console.log('Form submitted:', formData, selectedPlan);
-    alert('Registration submitted successfully!');
+  const handlePlanSelect = (planName) => {
+    setSelectedPlan(planName);
+    
+    const planMapping = {
+      'Starter': 1,
+      'Pro': 2,
+      'Elite': 3
+    };
+    
+    setFormData(prev => ({
+      ...prev,
+      plan: planMapping[planName] || 2
+    }));
   };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!formData.agreeToTerms) {
+      setError('Please agree to the Terms of Service and Privacy Policy');
+      return;
+    }
+
+    if (!isValidEmail(formData.email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError('');
+      
+      const userData = {
+        full_name: formData.full_name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        phone_no: formData.phone_no ? formData.phone_no.trim() : null,
+        password: formData.password,
+        plan: formData.plan,
+        fitness_goals: formData.fitness_goals || '',
+        status: 1,
+        created_at: new Date().toISOString()
+      };
+
+      await usersService.createUser(userData);
+      
+      // Show success message
+      setSuccess(true);
+      
+      // Reset form
+      setFormData({
+        full_name: '',
+        email: '',
+        phone_no: '',
+        password: '',
+        fitness_goals: '',
+        plan: 2,
+        status: 1,
+        agreeToTerms: false
+      });
+
+    } catch (err) {
+      console.error('❌ Registration error:', err);
+      
+      if (err.message.includes('duplicate key')) {
+        setError('This email is already registered. Please use a different email.');
+      } else if (err.message.includes('users table')) {
+        setError('Registration system is currently unavailable. Please try again later.');
+      } else {
+        setError(`Registration failed: ${err.message}`);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetForm = () => {
+    setSuccess(false);
+    setError('');
+    setFormData({
+      full_name: '',
+      email: '',
+      phone_no: '',
+      password: '',
+      fitness_goals: '',
+      plan: 2,
+      status: 1,
+      agreeToTerms: false
+    });
+    setSelectedPlan('Pro');
+    setBillingCycle('monthly');
+  };
+
+  // Success Message Component
+  if (success) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle size={40} className="text-green-600" />
+          </div>
+          
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            Registration Successful! 🎉
+          </h1>
+          
+          <p className="text-gray-600 mb-6">
+            Thank you for registering with Fitness Pro! Your account has been created successfully.
+          </p>
+          
+          <div className="bg-gray-50 rounded-xl p-6 mb-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-center space-x-3">
+                <CheckCircle size={18} className="text-green-500 flex-shrink-0" />
+                <span className="text-gray-700">Your account is now active</span>
+              </div>
+              <div className="flex items-center justify-center space-x-3">
+                <CheckCircle size={18} className="text-green-500 flex-shrink-0" />
+                <span className="text-gray-700">Our team will contact you shortly</span>
+              </div>
+              <div className="flex items-center justify-center space-x-3">
+                <CheckCircle size={18} className="text-green-500 flex-shrink-0" />
+                <span className="text-gray-700">Check your email for details</span>
+              </div>
+            </div>
+          </div>
+          
+          <button
+            onClick={resetForm}
+            className="w-full py-3 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-lg font-bold hover:shadow-lg transition-all"
+          >
+            Register Another Person
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -196,25 +348,36 @@ const RegisterPage = () => {
                 </p>
               </div>
               
+              {/* Error Message */}
+              {error && (
+                <div className="mb-6 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg p-4">
+                  <div className="flex items-center space-x-2">
+                    <AlertCircle size={18} />
+                    <span>{error}</span>
+                  </div>
+                </div>
+              )}
+              
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name
+                    Full Name *
                   </label>
                   <input
                     type="text"
-                    name="fullName"
-                    value={formData.fullName}
+                    name="full_name"
+                    value={formData.full_name}
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     placeholder="John Doe"
                     required
+                    disabled={loading}
                   />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address
+                    Email Address *
                   </label>
                   <input
                     type="email"
@@ -224,6 +387,7 @@ const RegisterPage = () => {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     placeholder="john@example.com"
                     required
+                    disabled={loading}
                   />
                 </div>
                 
@@ -233,18 +397,18 @@ const RegisterPage = () => {
                   </label>
                   <input
                     type="tel"
-                    name="phone"
-                    value={formData.phone}
+                    name="phone_no"
+                    value={formData.phone_no}
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="(555) 123-4567"
-                    required
+                    placeholder="1234567890"
+                    disabled={loading}
                   />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Password
+                    Password *
                   </label>
                   <input
                     type="password"
@@ -252,25 +416,27 @@ const RegisterPage = () => {
                     value={formData.password}
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="••••••••"
+                    placeholder="•••••••• (min 6 characters)"
                     required
+                    disabled={loading}
+                    minLength="6"
                   />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Your Plan
+                    Select Your Plan *
                   </label>
                   <div className="space-y-3">
                     {pricingPlans.map((plan) => (
                       <div
                         key={plan.name}
-                        onClick={() => setSelectedPlan(plan.name)}
+                        onClick={() => !loading && handlePlanSelect(plan.name)}
                         className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
                           selectedPlan === plan.name
                             ? 'border-orange-500 bg-orange-50'
                             : 'border-gray-200 hover:border-gray-300'
-                        }`}
+                        } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
                         <div className="flex justify-between items-center">
                           <div>
@@ -303,12 +469,13 @@ const RegisterPage = () => {
                     Fitness Goals
                   </label>
                   <textarea
-                    name="fitnessGoals"
-                    value={formData.fitnessGoals}
+                    name="fitness_goals"
+                    value={formData.fitness_goals}
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     rows="3"
                     placeholder="Tell us about your fitness goals and experience..."
+                    disabled={loading}
                   />
                 </div>
                 
@@ -320,26 +487,28 @@ const RegisterPage = () => {
                     onChange={handleChange}
                     className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
                     required
+                    disabled={loading}
                   />
                   <label className="ml-2 block text-sm text-gray-700">
-                    I agree to the Terms of Service and Privacy Policy
+                    I agree to the Terms of Service and Privacy Policy *
                   </label>
                 </div>
                 
                 <button
                   type="submit"
-                  className="w-full py-4 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-xl font-bold text-lg hover:shadow-lg transition-all"
+                  disabled={loading}
+                  className="w-full py-4 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-xl font-bold text-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 >
-                  Complete Registration
+                  {loading ? (
+                    <>
+                      <Loader2 size={20} className="animate-spin mr-2" />
+                      Creating Account...
+                    </>
+                  ) : (
+                    'Complete Registration'
+                  )}
                 </button>
               </form>
-              
-              <p className="text-center text-gray-500 text-sm mt-6">
-                Already have an account?{' '}
-                <a href="#" className="text-orange-600 hover:text-orange-700 font-medium">
-                  Sign in here
-                </a>
-              </p>
             </div>
 
             {/* Plan Details & Benefits */}
@@ -365,23 +534,25 @@ const RegisterPage = () => {
                 <div className="inline-flex items-center bg-gray-100 rounded-full p-1">
                   <button
                     type="button"
-                    onClick={() => setBillingCycle('monthly')}
+                    onClick={() => !loading && setBillingCycle('monthly')}
                     className={`px-6 py-2 rounded-full font-medium transition-all ${
                       billingCycle === 'monthly'
                         ? 'bg-white text-gray-900 shadow-sm'
                         : 'text-gray-600 hover:text-gray-900'
-                    }`}
+                    } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={loading}
                   >
                     Monthly
                   </button>
                   <button
                     type="button"
-                    onClick={() => setBillingCycle('yearly')}
+                    onClick={() => !loading && setBillingCycle('yearly')}
                     className={`px-6 py-2 rounded-full font-medium transition-all ${
                       billingCycle === 'yearly'
                         ? 'bg-white text-gray-900 shadow-sm'
                         : 'text-gray-600 hover:text-gray-900'
-                    }`}
+                    } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={loading}
                   >
                     Yearly <span className="ml-1 text-orange-600 font-bold">Save 10%</span>
                   </button>
@@ -556,6 +727,7 @@ const RegisterPage = () => {
           <button
             onClick={() => document.querySelector('form')?.scrollIntoView({ behavior: 'smooth' })}
             className="inline-flex items-center space-x-2 px-8 py-4 bg-orange-600 text-white rounded-xl font-bold text-lg hover:bg-orange-700 transition-colors"
+            disabled={loading}
           >
             <span>Complete Your Registration</span>
             <ArrowRight size={20} />

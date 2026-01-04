@@ -1,22 +1,56 @@
-import { NavLink } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  FileText, 
-  ShoppingBag, 
-  Users, 
-  HelpCircle,
+import { NavLink } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Activity,
+  FileText,
+  Package,
   Settings,
-  LogOut
-} from 'lucide-react';
+  Users as TeamUsers,
+  UserCheck,
+  UserCircle,
+  HelpCircle,
+  LogOut,
+  MessageSquare,
+} from "lucide-react";
 
 const Sidebar = ({ onLogout }) => {
+  // Update your menuItems array:
   const menuItems = [
-    { path: '/admin-dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/admin-dashboard/blogs-videos', icon: FileText, label: 'Blogs & Videos' },
-    { path: '/admin-dashboard/products', icon: ShoppingBag, label: 'Products' },
-    { path: '/admin-dashboard/services', icon: Settings, label: 'Services' },
-    { path: '/admin-dashboard/team-members', icon: Users, label: 'Team Members' },
-    { path: '/admin-dashboard/faqs', icon: HelpCircle, label: 'FAQs' },
+    { path: "/admin-dashboard", icon: LayoutDashboard, label: "Dashboard" },
+    {
+      path: "/admin-dashboard/consultations",
+      icon: MessageSquare,
+      label: "Consultations",
+    },
+    {
+      path: "/admin-dashboard/assessments", // Add this line
+      icon: Activity, // You'll need to import Activity from lucide-react
+      label: "Assessments",
+    },
+    {
+      path: "/admin-dashboard/blog-posts",
+      icon: FileText,
+      label: "Blog Posts",
+    },
+    { path: "/admin-dashboard/products", icon: Package, label: "Products" },
+    { path: "/admin-dashboard/services", icon: Settings, label: "Services" },
+    {
+      path: "/admin-dashboard/team-members",
+      icon: TeamUsers,
+      label: "Team Members",
+    },
+    {
+      path: "/admin-dashboard/subscribed-clients",
+      icon: UserCheck,
+      label: "Subscribed Clients",
+    },
+    { path: "/admin-dashboard/users", icon: UserCircle, label: "Users" },
+    { path: "/admin-dashboard/faqs", icon: HelpCircle, label: "FAQs" },
+    {
+      path: "/admin-dashboard/user-questions",
+      icon: MessageSquare,
+      label: "User Questions",
+    },
   ];
 
   return (
@@ -44,8 +78,8 @@ const Sidebar = ({ onLogout }) => {
                 className={({ isActive }) =>
                   `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
                     isActive
-                      ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600'
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                      ? "bg-blue-50 text-blue-600 border-l-4 border-blue-600"
+                      : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                   }`
                 }
               >
